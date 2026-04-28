@@ -1,36 +1,29 @@
-import React, { useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 interface CollapseProps {
   title: string;
   description: string;
 }
 
-export const Collapse: React.FC<CollapseProps> = ({ title, description }) => {
-  const [isOpen, setIsOpen] = useState(false);
+const Collapse = ({ title, description }: CollapseProps) => {
+  const [open, setOpen] = useState(false);
 
   return (
-    <div className="border border-gray-200 rounded-lg">
+    <div className="border rounded-lg p-4">
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="cursor-pointer w-full px-4 py-3 flex items-center gap-4 bg-white hover:bg-gray-50 transition-colors"
+        onClick={() => setOpen(!open)}
+        className="w-full text-left font-semibold text-red-900"
       >
-        <div className="p-2 bg-gray-100">
-          <ChevronDown
-            size={20}
-            className={`text-gray-600 transition-transform ${
-              isOpen ? "rotate-180" : ""
-            }`}
-          />
-        </div>
-        <span className="text-lg font-semibold text-gray-800">{title}</span>
+        {title}
       </button>
 
-      {isOpen && (
-        <div className="px-4 py-3 bg-gray-50 border-t border-gray-200">
-          <p className="text-gray-700">{description}</p>
-        </div>
+      {open && (
+        <p className="mt-2 text-gray-600">
+          {description}
+        </p>
       )}
     </div>
   );
 };
+
+export default Collapse;
