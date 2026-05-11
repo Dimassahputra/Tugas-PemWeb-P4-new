@@ -18,6 +18,7 @@ import Dashboard from "./page/dashboard/Dashboard";
 import CategoryIndex from "./page/dashboard/kategori/CategoryIndex";
 import CategoryCreate from "./page/dashboard/kategori/CategoryCreate";
 import PembicaraIndex from "./page/dashboard/pembicara/PembicaraIndex";
+import PembicaraCreate from "./page/dashboard/pembicara/PembicaraCreate";
 import EventIndex from "./page/event/EventIndex";
 import EventCreate from "./page/event/EventCreate";
 
@@ -39,6 +40,7 @@ function App() {
         {/* AUTH */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
       </Route>
 
       {/* 🔐 PROTECTED ROUTE */}
@@ -52,6 +54,8 @@ function App() {
           <Route path="pembicara" element={<PembicaraIndex />} />
           <Route path="/dashboard/event" element={<EventIndex />} />
           <Route path="/dashboard/event/create" element={<EventCreate />} />
+          <Route path="pembicara/create" element={<PembicaraCreate />} />
+          <Route path="pembicara" element={<PembicaraIndex />} />
         </Route>
 
       </Route>

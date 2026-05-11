@@ -72,7 +72,7 @@ export default function CategoryIndex() {
         </div>
 
         <Link
-          to="/dashboard/category/create"
+          to="/dashboard/kategori/create"
           className="flex items-center gap-1.5 bg-[#7B1D3F] hover:bg-[#9e2550] text-white text-sm font-semibold px-4 py-2.5 rounded-lg transition-colors"
         >
           <span className="text-base leading-none">+</span>
