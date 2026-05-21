@@ -17,10 +17,14 @@ import Register from "./page/RegisterForm";
 import Dashboard from "./page/dashboard/Dashboard";
 import CategoryIndex from "./page/dashboard/kategori/CategoryIndex";
 import CategoryCreate from "./page/dashboard/kategori/CategoryCreate";
+import CategoryEdit from "./page/dashboard/kategori/CategoryEdit";
 import PembicaraIndex from "./page/dashboard/pembicara/PembicaraIndex";
 import PembicaraCreate from "./page/dashboard/pembicara/PembicaraCreate";
+import PembicaraEdit from "./page/dashboard/pembicara/PembicaraEdit";
 import EventIndex from "./page/event/EventIndex";
 import EventCreate from "./page/event/EventCreate";
+import EventEdit from "./page/event/EventEdit";
+import Biodata from "./page/dashboard/kategori/Biodata"; // ✅ Import Biodata kamu
 
 // ROUTE PROTECT
 import ProtectedRoute from "./route/ProtectedRoute";
@@ -40,7 +44,6 @@ function App() {
         {/* AUTH */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
       </Route>
 
       {/* 🔐 PROTECTED ROUTE */}
@@ -49,13 +52,24 @@ function App() {
         {/* 📊 DASHBOARD (TANPA HEADER ATAS) */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<Dashboard />} />
+          
+          {/* 🧑‍💻 RUTE BIODATA KAMU */}
+          <Route path="biodata" element={<Biodata />} />
+
+          {/* 🗂️ RUTE KATEGORI */}
           <Route path="kategori" element={<CategoryIndex />} />
           <Route path="kategori/create" element={<CategoryCreate />} />
+          <Route path="kategori/edit/:id" element={<CategoryEdit />} />
+
+          {/* 👥 RUTE PEMBICARA */}
           <Route path="pembicara" element={<PembicaraIndex />} />
-          <Route path="/dashboard/event" element={<EventIndex />} />
-          <Route path="/dashboard/event/create" element={<EventCreate />} />
           <Route path="pembicara/create" element={<PembicaraCreate />} />
-          <Route path="pembicara" element={<PembicaraIndex />} />
+          <Route path="pembicara/edit/:id" element={<PembicaraEdit />} />
+
+          {/* 📅 RUTE EVENT */}
+          <Route path="event" element={<EventIndex />} />
+          <Route path="event/create" element={<EventCreate />} />
+          <Route path="event/edit/:id" element={<EventEdit />} />
         </Route>
 
       </Route>

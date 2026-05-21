@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom"; // ✅ Tambahkan Link untuk navigasi rute
+
 type Stat = {
   title: string;
   value: number;
@@ -110,7 +112,7 @@ function SpeakerListItem({
       }`}
     >
       <div
-        className={`w-10 h-10 rounded-full bg-gradient-to-brown ${
+        className={`w-10 h-10 rounded-full bg-gradient-to-br ${
           colors[index % colors.length]
         } text-white text-sm font-bold flex items-center justify-center`}
       >
@@ -129,22 +131,43 @@ export default function Dashboard() {
   return (
     <div className="px-10 py-10 w-full space-y-10">
 
-      {/* HEADER */}
-      <div>
-        <div className="flex items-center gap-2 mb-2">
-          <span className="w-5 h-0.5 bg-[#7B1D3F]" />
-          <span className="text-xs font-semibold text-[#7B1D3F] uppercase tracking-widest">
-            Overview
-          </span>
+      {/* HEADER & BIODATA QUICK VIEW */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-gradient-to-r from-rose-50 to-white border border-rose-100/60 p-6 rounded-2xl shadow-sm">
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-5 h-0.5 bg-[#7B1D3F]" />
+            <span className="text-xs font-semibold text-[#7B1D3F] uppercase tracking-widest">
+              Overview
+            </span>
+          </div>
+          <h1 className="text-3xl font-bold text-[#1a0a10]">
+            Dashboard
+          </h1>
+          <p className="text-gray-400 mt-1 text-sm">
+            Ringkasan data Invofest hari ini
+          </p>
         </div>
 
-        <h1 className="text-3xl font-bold text-[#1a0a10]">
-          Dashboard
-        </h1>
-
-        <p className="text-gray-400 mt-2">
-          Ringkasan data Invofest hari ini
-        </p>
+        {/* ✅ TOMBOL PROFIL UTAMA (SINKRON KE BIODATA) */}
+        <Link 
+          to="/dashboard/biodata"
+          className="flex items-center gap-3 bg-white border border-gray-100 p-3 rounded-xl hover:shadow-md transition group text-left max-w-xs"
+        >
+          <div className="w-10 h-10 bg-rose-100 rounded-full flex items-center justify-center text-lg">
+            👨‍💻
+          </div>
+          <div>
+            <p className="text-sm font-bold text-[#1a0a10] group-hover:text-[#7B1D3F] transition">
+              Dimas Sahputra
+            </p>
+            <p className="text-xs text-gray-400 font-medium">
+              NIM. 24090016
+            </p>
+          </div>
+          <span className="text-gray-300 group-hover:text-[#7B1D3F] ml-auto pl-2 text-sm transition">
+            ➔
+          </span>
+        </Link>
       </div>
 
       {/* STATS */}

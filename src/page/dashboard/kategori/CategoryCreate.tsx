@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios"; 
 
 export default function CategoryCreate() {
   const [name, setName] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!name) {
@@ -13,10 +14,31 @@ export default function CategoryCreate() {
       return;
     }
 
-    alert(`Kategori "${name}" berhasil ditambahkan!`);
+    try {
+      // Mengirimkan data name menggunakan axios
+      const response = await axios.post("http://localhost:3000/categories", {
+        name: name
+      });
 
-    // setelah submit balik ke index
-    navigate("/dashboard/kategori");
+      // Jika Express merespon dengan status sukses (200 atau 201)
+      if (response.status === 201 || response.status === 200) {
+        alert(`Kategori "${name}" berhasil ditambahkan ke Supabase!`);
+        navigate("/dashboard/kategori");
+      }
+    } catch (error: any) {
+      console.error("Detail Error Lengkap:", error);
+      
+      if (error.response) {
+        // Kasus 1: Server Express merespon, tapi mengembalikan error (misal status 400 atau 500)
+        alert(`Gagal dari Server: ${error.response.data.message || "Internal Server Error"}`);
+      } else if (error.request) {
+        // Kasus 2: Request dikirim, tapi tidak ada respon sama sekali dari Express (misal port salah/mati)
+        alert("Gagal menyambung ke server Express. Pastikan backend kamu sudah running di http://localhost:3000 !");
+      } else {
+        // Kasus 3: Ada kesalahan setup request di frontend
+        alert(`Error: ${error.message}`);
+      }
+    }
   };
 
   return (
@@ -40,7 +62,7 @@ export default function CategoryCreate() {
 
         <button
           type="submit"
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 cursor-pointer"
         >
           Simpan
         </button>
