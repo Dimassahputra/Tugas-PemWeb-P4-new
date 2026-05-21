@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
+
 type Event = {
   id: number;
   name: string;
@@ -17,7 +19,7 @@ export default function EventIndex() {
 
   const fetchEvents = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/events");
+      const response = await axios.get(`${API_URL}/events`);
       setEvents(response.data);
     } catch (error) {
       console.error("Gagal memuat data event:", error);
@@ -33,7 +35,7 @@ export default function EventIndex() {
   const handleDelete = async (id: number, name: string) => {
     if (confirm(`Apakah Anda yakin ingin menghapus event "${name}"?`)) {
       try {
-        await axios.delete(`http://localhost:3000/events/${id}`);
+        await axios.delete(`${API_URL}/events/${id}`);
         alert("Event berhasil dihapus!");
         fetchEvents(); 
       } catch (error) {
@@ -117,7 +119,6 @@ export default function EventIndex() {
 
                   <td className="px-4 py-3.5">
                     <div className="flex gap-2">
-                      {/* Tautan Navigasi Edit */}
                       <Link 
                         to={`/dashboard/event/edit/${item.id}`}
                         className="text-xs font-semibold px-3 py-1.5 rounded-md border border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors text-center"

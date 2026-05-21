@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
+
 type Category = {
   id: number;
   name: string;
@@ -12,7 +14,7 @@ function CategoryRow({ item, index, onDeleteSuccess }: { item: Category; index: 
   const handleDelete = async () => {
     if (confirm(`Yakin ingin menghapus kategori "${item.name}"?`)) {
       try {
-        const res = await fetch(`http://localhost:3000/categories/${item.id}`, {
+        const res = await fetch(`${API_URL}/categories/${item.id}`, {
           method: "DELETE"
         });
         if (res.ok) {
@@ -38,7 +40,6 @@ function CategoryRow({ item, index, onDeleteSuccess }: { item: Category; index: 
 
       <td className="px-4 py-3.5">
         <div className="flex gap-2">
-          {/* ✅ DIUBAH MENJADI LINK EDIT */}
           <Link 
             to={`/dashboard/kategori/edit/${item.id}`} 
             className="text-xs font-semibold px-3 py-1.5 rounded-md border border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors"
@@ -60,7 +61,7 @@ export default function CategoryIndex() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch("http://localhost:3000/categories");
+      const response = await fetch(`${API_URL}/categories`);
       if (!response.ok) throw new Error("Gagal mengambil data");
       const data = await response.json();
       setCategories(data);
@@ -102,7 +103,7 @@ export default function CategoryIndex() {
       {/* TABLE CARD */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-14 text-center text-sm text-gray-400">Memuat data dari Supabase...</div>
+          <div className="p-14 text-center text-sm text-gray-400">Memuat data dari database...</div>
         ) : (
           <table className="w-full border-collapse">
             <thead>

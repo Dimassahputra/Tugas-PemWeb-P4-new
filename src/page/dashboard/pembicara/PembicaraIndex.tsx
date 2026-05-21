@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
+// Menggunakan Environment Variable dari Vite, jika tidak ada fallback ke backend Vercel langsung
+const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
+
 type Speaker = {
   id: number;
   name: string;
@@ -31,7 +34,7 @@ export default function PembicaraIndex() {
 
   const fetchSpeakers = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/pembicara");
+      const response = await axios.get(`${API_URL}/pembicara`);
       setSpeakers(response.data);
     } catch (error) {
       console.error("Gagal memuat data pembicara:", error);
@@ -47,7 +50,7 @@ export default function PembicaraIndex() {
   const handleDelete = async (id: number, name: string) => {
     if (confirm(`Apakah Anda yakin ingin menghapus pembicara "${name}"?`)) {
       try {
-        await axios.delete(`http://localhost:3000/pembicara/${id}`);
+        await axios.delete(`${API_URL}/pembicara/${id}`);
         alert("Pembicara berhasil dihapus!");
         fetchSpeakers(); 
       } catch (error) {
@@ -117,12 +120,11 @@ export default function PembicaraIndex() {
                     <span className={`text-xs font-semibold px-3 py-1 rounded-full ${
                       item.status === "active" || item.status === "Aktif" ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-700"
                     }`}>
-                      {item.status === "active" || item.status === "Aktif" ? "● :aktif" : "● Nonaktif"}
+                      {item.status === "active" || item.status === "Aktif" ? "● Aktif" : "● Nonaktif"}
                     </span>
                   </td>
                   <td className="px-5 py-4">
                     <div className="flex gap-2">
-                      {/* ✅ DIUBAH MENJADI LINK EDIT */}
                       <Link 
                         to={`/dashboard/pembicara/edit/${item.id}`}
                         className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-yellow-300 bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition"
