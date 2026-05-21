@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
+// ✅ Menggunakan endpoint Vercel secara dinamis
+const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
+
 type Category = { id: number; name: string };
 type Speaker = { id: number; name: string };
 
@@ -26,9 +29,9 @@ export default function EventEdit() {
       try {
         // 1. Ambil semua opsi kategori & pembicara untuk dropdown
         const [resCat, resSpeak, resEvent] = await Promise.all([
-          axios.get("http://localhost:3000/categories"),
-          axios.get("http://localhost:3000/pembicara"),
-          axios.get(`http://localhost:3000/events/${id}`)
+          axios.get(`${API_URL}/categories`),
+          axios.get(`${API_URL}/pembicara`),
+          axios.get(`${API_URL}/events/${id}`)
         ]);
 
         setCategories(resCat.data);
@@ -65,7 +68,7 @@ export default function EventEdit() {
     }
 
     try {
-      await axios.put(`http://localhost:3000/events/${id}`, {
+      await axios.put(`${API_URL}/events/${id}`, {
         name,
         categoryId: parseInt(categoryId),
         pembicaraId: parseInt(pembicaraId),
@@ -74,7 +77,7 @@ export default function EventEdit() {
       });
 
       alert("Event berhasil diperbarui!");
-      navigate("/dashboard/event"); // Balik ke halaman utama tabel event
+      navigate("/dashboard/event"); 
     } catch (error) {
       console.error("Gagal mengupdate event:", error);
       alert("Terjadi kesalahan saat menyimpan perubahan.");
