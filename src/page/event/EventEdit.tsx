@@ -1,183 +1,132 @@
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useNavigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 
-// ✅ Menggunakan endpoint Vercel secara dinamis
-const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
+const schema = z.object({
+  name: z.string().min(3, "Nama event minimal 3 karakter"),
+  categoryId: z.string().min(1, "Kategori wajib dipilih"),
+  pembicaraId: z.string().min(1, "Pembicara wajib dipilih"),
+  dateEvent: z.string().min(1, "Tanggal wajib diisi"),
+  location: z.string().min(3, "Lokasi minimal 3 karakter"),
+  description: z.string().min(5, "Deskripsi minimal 5 karakter"),
+  status: z.string().min(1, "Status wajib dipilih"),
+});
 
-type Category = { id: number; name: string };
-type Speaker = { id: number; name: string };
+type FormData = z.infer<typeof schema>;
 
 export default function EventEdit() {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<any[]>([]);
+  const [pembicaras, setPembicaras] = useState<any[]>([]);
 
-  // State Form
-  const [name, setName] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [pembicaraId, setPembicaraId] = useState("");
-  const [dateEvent, setDateEvent] = useState("");
-  const [status, setStatus] = useState("active");
-
-  // State Pilihan Dropdown Relasi
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [speakers, setSpeakers] = useState<Speaker[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  });
 
   useEffect(() => {
-    const initData = async () => {
+    const loadDependenciesAndEvent = async () => {
       try {
-        // 1. Ambil semua opsi kategori & pembicara untuk dropdown
-        const [resCat, resSpeak, resEvent] = await Promise.all([
-          axios.get(`${API_URL}/categories`),
-          axios.get(`${API_URL}/pembicara`),
-          axios.get(`${API_URL}/events/${id}`)
-        ]);
-
+        // 1. Ambil opsi dropdown data
+        const resCat = await axios.get("http://localhost:3000/categories");
+        const resPem = await axios.get("http://localhost:3000/pembicara");
         setCategories(resCat.data);
-        setSpeakers(resSpeak.data);
+        setPembicaras(resPem.data);
 
-        // 2. Masukkan data event lama ke dalam form input
+        // 2. Ambil data lama Event
+        const resEvent = await axios.get(`http://localhost:3000/events/${id}`);
         const eventData = resEvent.data;
-        setName(eventData.name);
-        setCategoryId(eventData.categoryId?.toString() || eventData.category?.id?.toString() || "");
-        setPembicaraId(eventData.pembicaraId?.toString() || eventData.pembicara?.id?.toString() || "");
-        setStatus(eventData.status || "active");
-        
-        if (eventData.dateEvent) {
-          // Format ISO date string ke bentuk YYYY-MM-DD agar dibaca oleh input type="date"
-          setDateEvent(new Date(eventData.dateEvent).toISOString().split("T")[0]);
-        }
-      } catch (error) {
-        console.error("Gagal memuat data edit event:", error);
-        alert("Data event tidak ditemukan atau server bermasalah.");
+
+        // 3. Format tanggal ke YYYY-MM-DD agar bisa terbaca oleh <input type="date">
+        const formattedDate = eventData.dateEvent ? new Date(eventData.dateEvent).toISOString().split('T')[0] : "";
+
+        setValue("name", eventData.name);
+        setValue("categoryId", String(eventData.categoryId));
+        setValue("pembicaraId", String(eventData.pembicaraId));
+        setValue("dateEvent", formattedDate!);
+        setValue("location", eventData.location);
+        setValue("description", eventData.description);
+        setValue("status", eventData.status);
+      } catch (err) {
+        console.error("Gagal memuat data edit event:", err);
+        alert("Data event tidak ditemukan!");
         navigate("/dashboard/event");
-      } finally {
-        setLoading(false);
       }
     };
+    loadDependenciesAndEvent();
+  }, [id, setValue, navigate]);
 
-    initData();
-  }, [id, navigate]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !categoryId || !pembicaraId || !dateEvent) {
-      alert("Harap isi semua kolom form!");
-      return;
-    }
-
+  const onSubmit = async (data: FormData) => {
     try {
-      await axios.put(`${API_URL}/events/${id}`, {
-        name,
-        categoryId: parseInt(categoryId),
-        pembicaraId: parseInt(pembicaraId),
-        dateEvent,
-        status
-      });
-
+      await axios.put(`http://localhost:3000/events/${id}`, data);
       alert("Event berhasil diperbarui!");
-      navigate("/dashboard/event"); 
-    } catch (error) {
-      console.error("Gagal mengupdate event:", error);
-      alert("Terjadi kesalahan saat menyimpan perubahan.");
+      navigate("/dashboard/event");
+    } catch (error: any) {
+      console.error(error);
+      alert(error.response?.data?.message || "Gagal memperbarui event.");
     }
   };
 
-  if (loading) {
-    return <div className="p-14 text-center text-sm text-gray-400">Memuat data form edit...</div>;
-  }
-
   return (
-    <div className="px-7 py-8 max-w-2xl mx-auto">
-      {/* HEADER */}
-      <div className="mb-7">
-        <h1 className="text-2xl font-bold text-[#1a0a10] tracking-tight">Edit Event</h1>
-        <p className="text-sm text-gray-400 mt-1">Ubah informasi detail event Invofest</p>
-      </div>
+    <div className="max-w-xl mx-auto mt-10 p-6 border rounded-xl shadow bg-white">
+      <h1 className="text-2xl font-bold mb-4">Edit Event</h1>
 
-      {/* FORM */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-5">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div>
-          <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Nama Event</label>
-          <input
-            type="text"
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#7B1D3F]"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Masukkan nama event"
-          />
+          <input {...register("name")} placeholder="Nama Event" className="border p-2 rounded w-full" />
+          {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Kategori</label>
-            <select
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-[#7B1D3F]"
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-            >
-              <option value="">-- Pilih Kategori --</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Pembicara</label>
-            <select
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-[#7B1D3F]"
-              value={pembicaraId}
-              onChange={(e) => setPembicaraId(e.target.value)}
-            >
-              <option value="">-- Pilih Pembicara --</option>
-              {speakers.map((spk) => (
-                <option key={spk.id} value={spk.id}>{spk.name}</option>
-              ))}
-            </select>
-          </div>
+        <div>
+          <select {...register("categoryId")} className="border p-2 rounded w-full">
+            <option value="">Pilih Kategori</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          {errors.categoryId && <p className="text-red-500 text-xs mt-1">{errors.categoryId.message}</p>}
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Tanggal Event</label>
-            <input
-              type="date"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#7B1D3F]"
-              value={dateEvent}
-              onChange={(e) => setDateEvent(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Status</label>
-            <select
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm bg-white focus:outline-none focus:border-[#7B1D3F]"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <option value="active">Aktif</option>
-              <option value="inactive">Nonaktif</option>
-            </select>
-          </div>
+        <div>
+          <select {...register("pembicaraId")} className="border p-2 rounded w-full">
+            <option value="">Pilih Pembicara</option>
+            {pembicaras.map((p) => (
+              <option key={p.id} value={p.id}>{p.name} - {p.job}</option>
+            ))}
+          </select>
+          {errors.pembicaraId && <p className="text-red-500 text-xs mt-1">{errors.pembicaraId.message}</p>}
         </div>
 
-        {/* ACTIONS TOMBOL */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-gray-50">
-          <Link
-            to="/dashboard/event"
-            className="px-4 py-2 text-sm font-semibold text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            Batal
-          </Link>
-          <button
-            type="submit"
-            className="px-4 py-2 text-sm font-semibold text-white bg-[#7B1D3F] hover:bg-[#9e2550] rounded-lg transition-colors"
-          >
-            Simpan Perubahan
-          </button>
+        <div>
+          <input type="date" {...register("dateEvent")} className="border p-2 rounded w-full" />
+          {errors.dateEvent && <p className="text-red-500 text-xs mt-1">{errors.dateEvent.message}</p>}
         </div>
+
+        <div>
+          <input {...register("location")} placeholder="Lokasi Event" className="border p-2 rounded w-full" />
+          {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location.message}</p>}
+        </div>
+
+        <div>
+          <textarea {...register("description")} placeholder="Deskripsi Event" className="border p-2 rounded w-full h-24" />
+          {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
+        </div>
+
+        <div>
+          <select {...register("status")} className="border p-2 rounded w-full">
+            <option value="">Pilih Status</option>
+            <option value="active">Aktif</option>
+            <option value="inactive">Nonaktif</option>
+          </select>
+          {errors.status && <p className="text-red-500 text-xs mt-1">{errors.status.message}</p>}
+        </div>
+
+        <button type="submit" className="bg-[#7B1D3F] hover:bg-[#9e2550] text-white py-2 rounded font-semibold cursor-pointer">
+          Simpan Perubahan
+        </button>
       </form>
     </div>
   );
