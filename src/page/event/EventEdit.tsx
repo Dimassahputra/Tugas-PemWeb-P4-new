@@ -1,9 +1,11 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+
+const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
 
 const schema = z.object({
   name: z.string().min(3, "Nama event minimal 3 karakter"),
@@ -30,26 +32,23 @@ export default function EventEdit() {
   useEffect(() => {
     const loadDependenciesAndEvent = async () => {
       try {
-        // 1. Ambil opsi dropdown data
-        const resCat = await axios.get("http://localhost:3000/categories");
-        const resPem = await axios.get("http://localhost:3000/pembicara");
+        const resCat = await axios.get(`${API_URL}/categories`);
+        const resPem = await axios.get(`${API_URL}/pembicara`);
         setCategories(resCat.data);
         setPembicaras(resPem.data);
 
-        // 2. Ambil data lama Event
-        const resEvent = await axios.get(`http://localhost:3000/events/${id}`);
+        const resEvent = await axios.get(`${API_URL}/events/${id}`);
         const eventData = resEvent.data;
 
-        // 3. Format tanggal ke YYYY-MM-DD agar bisa terbaca oleh <input type="date">
         const formattedDate = eventData.dateEvent ? new Date(eventData.dateEvent).toISOString().split('T')[0] : "";
 
-        setValue("name", eventData.name);
-        setValue("categoryId", String(eventData.categoryId));
-        setValue("pembicaraId", String(eventData.pembicaraId));
-        setValue("dateEvent", formattedDate!);
-        setValue("location", eventData.location);
-        setValue("description", eventData.description);
-        setValue("status", eventData.status);
+        setValue("name", eventData.name, { shouldValidate: true });
+        setValue("categoryId", String(eventData.categoryId || eventData.category?.id), { shouldValidate: true });
+        setValue("pembicaraId", String(eventData.pembicaraId || eventData.pembicara?.id), { shouldValidate: true });
+        setValue("dateEvent", formattedDate!, { shouldValidate: true });
+        setValue("location", eventData.location, { shouldValidate: true });
+        setValue("description", eventData.description, { shouldValidate: true });
+        setValue("status", eventData.status, { shouldValidate: true });
       } catch (err) {
         console.error("Gagal memuat data edit event:", err);
         alert("Data event tidak ditemukan!");
@@ -61,9 +60,15 @@ export default function EventEdit() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      await axios.put(`http://localhost:3000/events/${id}`, data);
+      const payload = {
+        ...data,
+        categoryId: parseInt(data.categoryId),
+        pembicaraId: parseInt(data.pembicaraId)
+      };
+
+      await axios.put(`${API_URL}/events/${id}`, payload);
       alert("Event berhasil diperbarui!");
-      navigate("/dashboard/event");
+      navigate("/dashboard/event"); // ✅ Tetap aman ke /event
     } catch (error: any) {
       console.error(error);
       alert(error.response?.data?.message || "Gagal memperbarui event.");
@@ -76,12 +81,14 @@ export default function EventEdit() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
         <div>
+          <label className="text-xs font-bold text-gray-600 block mb-1">Nama Event</label>
           <input {...register("name")} placeholder="Nama Event" className="border p-2 rounded w-full" />
           {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
         </div>
 
         <div>
-          <select {...register("categoryId")} className="border p-2 rounded w-full">
+          <label className="text-xs font-bold text-gray-600 block mb-1">Kategori</label>
+          <select {...register("categoryId")} className="border p-2 rounded w-full bg-white">
             <option value="">Pilih Kategori</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -91,7 +98,8 @@ export default function EventEdit() {
         </div>
 
         <div>
-          <select {...register("pembicaraId")} className="border p-2 rounded w-full">
+          <label className="text-xs font-bold text-gray-600 block mb-1">Pembicara</label>
+          <select {...register("pembicaraId")} className="border p-2 rounded w-full bg-white">
             <option value="">Pilih Pembicara</option>
             {pembicaras.map((p) => (
               <option key={p.id} value={p.id}>{p.name} - {p.job}</option>
@@ -101,22 +109,26 @@ export default function EventEdit() {
         </div>
 
         <div>
+          <label className="text-xs font-bold text-gray-600 block mb-1">Tanggal Event</label>
           <input type="date" {...register("dateEvent")} className="border p-2 rounded w-full" />
           {errors.dateEvent && <p className="text-red-500 text-xs mt-1">{errors.dateEvent.message}</p>}
         </div>
 
         <div>
+          <label className="text-xs font-bold text-gray-600 block mb-1">Lokasi</label>
           <input {...register("location")} placeholder="Lokasi Event" className="border p-2 rounded w-full" />
           {errors.location && <p className="text-red-500 text-xs mt-1">{errors.location.message}</p>}
         </div>
 
         <div>
+          <label className="text-xs font-bold text-gray-600 block mb-1">Deskripsi</label>
           <textarea {...register("description")} placeholder="Deskripsi Event" className="border p-2 rounded w-full h-24" />
           {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
         </div>
 
         <div>
-          <select {...register("status")} className="border p-2 rounded w-full">
+          <label className="text-xs font-bold text-gray-600 block mb-1">Status</label>
+          <select {...register("status")} className="border p-2 rounded w-full bg-white">
             <option value="">Pilih Status</option>
             <option value="active">Aktif</option>
             <option value="inactive">Nonaktif</option>
@@ -124,9 +136,14 @@ export default function EventEdit() {
           {errors.status && <p className="text-red-500 text-xs mt-1">{errors.status.message}</p>}
         </div>
 
-        <button type="submit" className="bg-[#7B1D3F] hover:bg-[#9e2550] text-white py-2 rounded font-semibold cursor-pointer">
-          Simpan Perubahan
-        </button>
+        <div className="flex gap-2 justify-end">
+          <Link to="/dashboard/event" className="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 px-4 rounded font-semibold">
+            Batal
+          </Link>
+          <button type="submit" className="bg-[#7B1D3F] hover:bg-[#9e2550] text-white py-2 px-4 rounded font-semibold cursor-pointer">
+            Simpan Perubahan
+          </button>
+        </div>
       </form>
     </div>
   );
