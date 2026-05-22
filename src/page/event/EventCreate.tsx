@@ -5,6 +5,9 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
+// ✅ 1. Deklarasikan API_URL dinamis dari environment variable di bagian paling atas
+const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
+
 type FormData = {
   name: string;
   categoryId: string;
@@ -34,16 +37,16 @@ export default function EventCreate() {
     resolver: zodResolver(schema),
   });
 
-  // Ambil opsi Kategori & Pembicara langsung dari database Supabase
+  // ✅ 2. Ubah pemanggilan list dropdown dari localhost ke API_URL
   useEffect(() => {
     const loadDropdownData = async () => {
       try {
-        const resCat = await axios.get("http://localhost:3000/categories");
-        const resPem = await axios.get("http://localhost:3000/pembicara");
+        const resCat = await axios.get(`${API_URL}/categories`);
+        const resPem = await axios.get(`${API_URL}/pembicara`);
         setCategories(resCat.data);
         setPembicaras(resPem.data);
       } catch (err) {
-        console.error("Gagal memuat list dropdown:", err);
+        console.error("Gagal memuat list dropdown dari Vercel:", err);
       }
     };
     loadDropdownData();
@@ -51,14 +54,29 @@ export default function EventCreate() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await axios.post("http://localhost:3000/events", data);
+      // ✅ 3. Mapping payload agar categoryId & pembicaraId dikonversi menjadi integer murni
+      const payload = {
+        ...data,
+        categoryId: parseInt(data.categoryId),
+        pembicaraId: parseInt(data.pembicaraId),
+      };
+
+      // ✅ 4. Ubah URL post ke API_URL vercel asli
+      const response = await axios.post(`${API_URL}/events`, payload);
+      
       if (response.status === 201 || response.status === 200) {
-        alert("Event berhasil disimpan ke Supabase!");
+        alert("Event berhasil disimpan ke database!");
         navigate("/dashboard/event");
       }
     } catch (error: any) {
-      console.error(error);
-      alert(error.response?.data?.message || "Gagal menyimpan event.");
+      console.error("Detail Error Event:", error);
+      if (error.response) {
+        alert(`Gagal dari Server: ${error.response.data.message || "Internal Server Error"}`);
+      } else if (error.request) {
+        alert(`Gagal menyambung ke server. Pastikan API di ${API_URL} sudah running!`);
+      } else {
+        alert(`Error: ${error.message}`);
+      }
     }
   };
 

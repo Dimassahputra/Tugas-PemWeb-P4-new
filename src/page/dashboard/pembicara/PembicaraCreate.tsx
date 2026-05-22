@@ -4,6 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+// ✅ 1. Deklarasikan API_URL dinamis dari environment variable di bagian paling atas
+const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
+
 const schema = z.object({
   name: z.string().min(3, "Nama minimal 3 karakter"),
   job: z.string().min(3, "Pekerjaan minimal 3 karakter"),
@@ -27,14 +30,24 @@ export default function PembicaraCreate() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const response = await axios.post("http://localhost:3000/pembicara", data);
+      // ✅ 2. Ubah URL localhost menjadi template literal menggunakan `${API_URL}`
+      const response = await axios.post(`${API_URL}/pembicara`, data);
+      
       if (response.status === 201 || response.status === 200) {
         alert("Pembicara berhasil disimpan ke Supabase!");
         navigate("/dashboard/pembicara");
       }
     } catch (error: any) {
-      console.error(error);
-      alert(error.response?.data?.message || "Gagal menyimpan pembicara.");
+      console.error("Detail Error Pembicara:", error);
+      
+      // Memberikan pesan error yang lebih informatif jika gagal terhubung
+      if (error.response) {
+        alert(`Gagal dari Server: ${error.response.data.message || "Internal Server Error"}`);
+      } else if (error.request) {
+        alert(`Gagal menyambung ke server. Pastikan API di ${API_URL} sudah running!`);
+      } else {
+        alert(`Error: ${error.message}`);
+      }
     }
   };
 
@@ -96,7 +109,8 @@ export default function PembicaraCreate() {
           {errors.status && <p className="text-red-500 text-xs mt-1">{errors.status.message}</p>}
         </div>
 
-        <button className="bg-red-600 hover:bg-red-700 text-white py-2 rounded font-semibold cursor-pointer transition-colors">
+        {/* ✅ Pastikan type="submit" terpasang dengan benar */}
+        <button type="submit" className="bg-red-600 hover:bg-red-700 text-white py-2 rounded font-semibold cursor-pointer transition-colors">
           Simpan
         </button>
       </form>

@@ -2,6 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios"; 
 
+// ✅ Letakkan deklarasi baseUrl di sini menggunakan environment variable dinamis
+const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
+
 export default function CategoryCreate() {
   const [name, setName] = useState("");
   const navigate = useNavigate();
@@ -15,8 +18,8 @@ export default function CategoryCreate() {
     }
 
     try {
-      // Mengirimkan data name menggunakan axios
-      const response = await axios.post("http://localhost:3000/categories", {
+      // ✅ Ubah "http://localhost:3000" menjadi `${API_URL}` dengan template literal (backtick)
+      const response = await axios.post(`${API_URL}/categories`, {
         name: name
       });
 
@@ -29,11 +32,11 @@ export default function CategoryCreate() {
       console.error("Detail Error Lengkap:", error);
       
       if (error.response) {
-        // Kasus 1: Server Express merespon, tapi mengembalikan error (misal status 400 atau 500)
+        // Kasus 1: Server merespon, tapi mengembalikan error (misal status 400 atau 500)
         alert(`Gagal dari Server: ${error.response.data.message || "Internal Server Error"}`);
       } else if (error.request) {
-        // Kasus 2: Request dikirim, tapi tidak ada respon sama sekali dari Express (misal port salah/mati)
-        alert("Gagal menyambung ke server Express. Pastikan backend kamu sudah running di http://localhost:3000 !");
+        // Kasus 2: Request dikirim, tapi tidak ada respon sama sekali dari server API
+        alert(`Gagal menyambung ke server. Pastikan API kamu di ${API_URL} sudah berjalan!`);
       } else {
         // Kasus 3: Ada kesalahan setup request di frontend
         alert(`Error: ${error.message}`);
