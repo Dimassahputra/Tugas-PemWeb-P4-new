@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios"; 
 
 // ✅ Letakkan deklarasi baseUrl di sini menggunakan environment variable dinamis
-const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/categories";
 
 export default function CategoryCreate() {
   const [name, setName] = useState("");

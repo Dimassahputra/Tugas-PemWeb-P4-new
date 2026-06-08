@@ -33,6 +33,11 @@ export default function DashboardLayout() {
           <NavLink to="/dashboard/pembicara" className="hover:opacity-60">
             Pembicara
           </NavLink>
+
+          <NavLink to="/dashboard/user" className="hover:opacity-60">
+            User
+          </NavLink>
+
         </nav>
 
         {/* 🔴 LOGOUT (DITAMBAH FUNCTION SAJA) */}

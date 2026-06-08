@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 
 // Menggunakan Environment Variable dari Vite, jika tidak ada fallback ke backend Vercel langsung
-const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/pembicara";
 
 type Speaker = {
   id: number;

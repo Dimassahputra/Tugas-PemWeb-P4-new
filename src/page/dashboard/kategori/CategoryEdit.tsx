@@ -5,7 +5,7 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import { useEffect } from "react";
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://backend-invofest-alpha.vercel.app";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/categories";
 
 const schema = z.object({
   name: z.string().min(3, "Nama kategori minimal 3 karakter"),
